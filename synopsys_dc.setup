@@ -1,0 +1,66 @@
+echo “***********************************************”
+echo “*********Start load .synopsys_dc.setup*********”
+echo “***********************************************”
+
+# 定义各种文件的文件夹路径
+set    PROJ_ROOT_PATH    $env(PROJ_ROOT_PATH)
+set    RTL_PATH          $env(RTL_PATH)
+set    BUILD_PATH        $env(BUILD_PATH)
+
+set    CONFIG_PATH       $BUILD_PATH/config
+set    SCRIPT_PATH       $BUILD_PATH/script
+set    MAPPED_PATH       $BUILD_PATH/mapped
+set    REPORT_PATH       $BUILD_PATH/report
+set    UNMAPPED_PATH     $BUILD_PATH/unmapped
+set    WORK_PATH         $BUILD_PATH/work
+
+# 设置DC安装目录
+set   DC_HOME           $env(DC_HOME)
+
+set   LIB_PATH          $PROJ_ROOT_PATH/nangate45
+set   SYMBOL_PATH       $LIB_PATH/symbols
+set   LIB_NAME          NangateOpenCellLibrary
+
+set   DRIVE_CELL        INV_X1
+set   DRIVE_PIN         ZN
+
+set   LOAD_CELL         $LIB_NAME/INV_X8/A
+
+set   WIRE_LOAD_MODEL   ""; # 自动选择wire_load_model
+set   OPERA_CONDITION   slow
+
+# 设置DC内部自带的变量。建立搜索路径的list，.的意思是先在当前工作目录（work）下找，然后其他路径
+set_app_var   search_path   [list . $search_path \
+    $LIB_PATH                \
+    $SYMBOL_PATH             \
+    $RTL_PATH                \
+    $SCRIPT_PATH             \
+    ${DC_HOME}/libraries/syn \
+]
+
+# This variables are automatically set if you perform ultra command.
+# Specify for use during optimization.
+# you do not need to do anything to access the standard library,
+# DC is setup to use this library by default
+set_app_var synthetic_library  dw_foundation.sldb
+
+set_app_var target_library     [list "NangateOpenCellLibrary_slow_conditional_nldm.db"]
+# Specify for cell resolution during link
+set_app_var link_library       [list * ${target_library} ${synthetic_library}]
+#set_app_var symbol_library     [list tsmc090.sdb] 
+
+check_library
+
+# Source the naming rules
+
+echo “***********************************************”
+echo “*********End of load .synopsys_dc.setup********”
+echo “***********************************************”
+
+echo “***********************************************”
+echo “*********Start source hs_name_rules.v**********”
+echo “***********************************************”
+
+echo “***********************************************”
+echo “*********End of source hs_name_rules.v*********”
+echo “***********************************************”

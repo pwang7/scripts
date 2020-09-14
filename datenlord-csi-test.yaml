@@ -1,0 +1,44 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: csi-datenlord-test
+provisioner: csi.datenlord.io
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-datenlord-test
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: csi-datenlord-test
+
+---
+# kubectl exec -it pod/mysql-datenlord-test -- /bin/bash
+# kubectl patch pv pv-name -p '{"spec":{"claimRef": null}}'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mysql-datenlord-test
+spec:
+    containers:
+    - name: mysql
+      image: mysql
+      env:
+      - name: MYSQL_ROOT_PASSWORD
+        value: "rootpasswd"
+      volumeMounts:
+      - mountPath: /var/lib/mysql
+        name: data
+        subPath: mysql
+    volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: pvc-datenlord-test

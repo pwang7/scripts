@@ -1,0 +1,89 @@
+double word 64bit
+word 32bit
+
+unsigned int %u
+int %d
+unsigned long long int %llu
+long long int %lld
+
+positive number -> invert -> +1 -> negtive number -> intert -> +1 -> positive number
+cat <<EOF > ll.c
+#include <stdio.h>
+#include <math.h>
+int main() {
+    unsigned long long int llu_max = (unsigned long long int) (pow(2, 64) - 1);
+    printf("highest number represented by unsigned long long int is %llu\n", llu_max);
+
+    long long int lld_max = (long long int) (pow(2, 63) - 1);
+    printf("highest number represented by signed long long int is %lld\n", lld_max);
+
+    long long int lld_min = (long long int) (pow(2, 63) * -1);
+    printf("lowest number represented by signed long long int is %lld\n", lld_min);
+
+    return 0;
+}
+EOF
+
+cat <<EOF >sum.c
+#include <stdio.h>
+int main() {
+    int i, sum = 0, n = 100;
+    for (i = 1; i <= n; ++i) {
+        sum += i;
+    }
+    printf("Sum of numbers from 1 to %d is %d\n", n, sum);
+    return 0;
+}
+EOF
+
+gcc sum.c
+
+riscv64-unknown-elf-gcc -O1 -mabi=lp64 -march=rv64i -o sum.o sum.c
+riscv64-unknown-elf-gcc -Ofast -mabi=lp64 -march=rv64i -o sum.o sum.c
+riscv64-unknown-elf-objdump -d sum.o
+spike pk sum.o
+spike -d pk sum.o
+until pc 0 100b0
+reg 0 sp
+reg 0 a2
+<enter> # run one cmd
+reg 0 a0
+<enter>
+reg 0 sp
+<enter>
+reg 0 sp
+
+
+cat <<EOF >load.S
+.section .text
+.global load
+.type load, @function
+
+load:
+    add     a4, a0, zero // Initialize sum register a4 with 0x0
+    add     a2, a0, a1   // Store count of 10 in a2, a1 is loaded iwth 0xa from main()
+    add     a3, a0, zero // Initialize intermediate sum register a3 by 0x0
+loop:
+    add     a4, a3, a4   // Incremental addition
+    addi    a3, a3, 1    // Increment intermediate register by 1
+    blt     a3, a2, loop // If a3 < a2, branch to label named <loop>
+    add     a0, a4, zero // Store final result to register a0, so that it can be read by main()
+    ret
+EOF
+
+cat <<EOF > sums.c
+#include <stdio.h>
+extern int load(int x, int y);
+int main() {
+    int result = 0;
+    int count = 9;
+    result = load(0x0, count + 1);
+    printf("Sum of number from 1 to %d is %d\n", count, result);
+}
+EOF
+
+riscv64-unknown-elf-gcc -Ofast -mabi=lp64 -march=rv64i -o sums.o sums.c load.S
+
+
+git clone https://github.com/kunalg123/riscv_workshop_collaterals.git
+riscv_workshop_collaterals/lab/rv32im.sh # Run it

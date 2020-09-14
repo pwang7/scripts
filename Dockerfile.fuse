@@ -1,0 +1,11 @@
+FROM ubuntu
+LABEL maintainers="DatenLord Authors"
+LABEL description="DatenLord Memory Filesystem"
+
+ARG binary=async_fuse
+ARG script=umount-in-container.sh
+COPY ${binary} /usr/local/bin/datenlord-fuse
+COPY ${script} /usr/local/bin/umount-in-container.sh
+ENTRYPOINT ["/bin/sh", "-c", "/usr/local/bin/umount-in-container.sh $FUSE_MOUNT_DIR && /usr/local/bin/datenlord-fuse -m $FUSE_MOUNT_DIR"]
+CMD []
+

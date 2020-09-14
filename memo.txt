@@ -1,0 +1,1705 @@
+Delete:
+C-S-backspace
+
+Mark:
+C-@
+C-u C-@
+C-x h
+
+Numeric Commands
+M-g M-g / M-g g
+M-1 M-0 M-f
+M-- 3 M-c
+
+Movements:
+M-m
+M-a  M-e
+M-<  M->
+C-M-a  C-M-e
+C-M-f  C-M-b
+C-M-d  C-M-u
+M-r
+C-M-v
+C-u M-g M-g
+
+Search:
+M-s w
+C-r C-r
+
+C-a
+C-e
+M-f or M-left
+M-b or M-right
+M-<
+M->
+C-n
+C-p
+C-v
+M-v
+C-l
+
+M-g g
+M-g n
+M-g p
+
+C-s
+C-r
+M-%
+C-enter
+C-M-n???
+
+C-o
+C-j
+C-m
+C-;
+M-;
+
+M-d
+M-backspace
+C-k
+C-S-backspace
+C-x C-o
+
+C-space???
+C-x h
+M-S-left   select forward by words
+M-S-right  select backward by words
+C-w
+M-w
+C-y
+
+C-g
+
+C-x C-l
+C-x C-u
+
+C-x C-f
+C-x C-k
+C-x C-s
+C-s C-w
+C-x b
+C-x o
+C-x 0
+C-x 1
+C-x 2
+C-x 3
+C-x 4
+------------
+M-up
+M-down
+M-S-up    copy current line and paste to previous line
+M-S-down  copy current line and paste to next line
+
+M-click
+M-⌘-down  multi-cursor
+M-⌘-up
+S-⌘-L
+
+C-M-left
+C-M-right
+S-⌘-l
+⌘-D
+M-⌘-up
+M-⌘-down
+C-minus
+S-⌘-\     jump to end or begin of a bracelet pair
+
+M-⌘-left
+M-⌘-right
+
+C-single quote
+M-x
+C-M-space
+
+FFI:
+1. build.rs call cc and define library name;
+2. add link attribute with the library name to the begining of the extern function definition block in Rust code;
+3. add the extern function definition in a C header file.
+
+Fuse Documentation
+http://libfuse.github.io/doxygen/index.html
+
+Fuse ABI
+http://man7.org/linux/man-pages/man4/fuse.4.html
+https://blog.csdn.net/weixin_34372728/article/details/91949774
+
+from Zhi-Hu
+https://zhuanlan.zhihu.com/p/68085075
+
+from kernel doc:
+The filesystem type given to mount(2) can be "fuse"
+This is the usual way to mount a FUSE filesystem.
+
+The first argument of the mount system call may contain an arbitrary string, which is not interpreted by the kernel.
+
+There’s a control filesystem for FUSE, which can be mounted by:
+mount -t fusectl none /sys/fs/fuse/connections
+
+The userspace filesystem may ignore the INTERRUPT requests entirely, or may honor them by sending a reply to the original request, with the error set to EINTR.
+
+INTERRUPT request handling
+
+from osxfuse code
+	if (mo->auto_unmount) {
+		/* Tell the caller to fallback to fusermount because
+		   auto-unmount does not work otherwise. */
+		return -2;
+	}
+
+
+from Zero Copy article, about sendfile need file leasing to handle truncate
+You are probably wondering what happens if another process truncates the file we are transmitting with the sendfile system call. If we don't register any signal handlers, the sendfile call simply returns with the number of bytes it transferred before it got interrupted, and the errno will be set to success.
+
+If we get a lease from the kernel on the file before we call sendfile, however, the behavior and the return status are exactly the same. We also get the RT_SIGNAL_LEASE signal before the sendfile call returns.
+
+
+
+from book
+
+LRU/2
+Radix优先搜索树lib/radix-tree.c
+address_space_operation fs/ext3/inode.c
+Directory enties stored in B+tree
+B+tree in Rust?
+tmpfs?
+
+the ideal situation is the VM page size and the file system block size are equal
+managing free space on a disk using bitmap
+the number of blocks in an allocation group to be a multiple of the number of blocks mapped by a bitmap block, allocation group size would be 8192 blocks, the maximum allocation group size is always 65,536
+log directory changes
+The last accessed time is expensive to maintain, and in general the last modified time is sufficient
+Drawback of extent: Because each block run in the direct and indirect blocks can map a variable amount of the file data, we must always search linearly through them
+BFS uses the spare area of the i-node disk block to store small attributes
+the list of attributes is just a directory, and the individual attributes are really just files
+Using B+trees to store directories was the most attractive choice for BFS, the key is the name and the value is the i-node address
+store the list of available indices as a “hidden” directory, the superblock also contains the i- node address of the index directory, indices and directories are identical
+
+
+The attribute directory of a file is similar to a regular directory. Programs can open it and iterate through it to enumerate all the attributes of a file
+The links between nodes in a B-tree are simply the offsets in the file of the other nodes
+prefix B+tree for sring keys
+
+Placing directory data and file i-nodes near each other can produce a very large speed boost because when one is needed, so is the other
+The primary item that an allocation policy has control over is file data
+preallocates 64K of space for the file when it is first written or when it is grown
+
+A write to a single block on a disk is an indivisible (i.e., atomic) event
+the journal always ignores partially com- pleted transactions when examining the log
+Not only does journaling not store user data in the log, it cannot
+The slowdown introduced by buffering only one transaction is significant enough that most file systems prefer to offer improved throughput instead of better consistency guarantees
+With a single log, all transactions must lock access to the log before making modifications. A single log effectively forces the file system into a single-threaded model for updates
+
+cache use hash table, drop cache use LRU
+flush multiple dirty cache blocks at the same time
+read 32K ahead on a cache miss
+direct I/O scatter/gather I/O to bypass cache
+hit-under-miss
+the journal needs to know when each block is flushed from the cache, this is achieved with a callback function.
+when the cache sets a callback for a block, the cache clones the block in its current state
+Any I/O that is 64K in size or larger bypasses the cache
+
+the percentage of the raw disk bandwidth that the file system achieves
+tests used were IOZone and lmbench lat_fs
+archiving and unarchiving large (10–20 MB) archives
+compiling a library of source files
+database package, video capture
+PostMark
+DMA in user space?
+
+Make liberal use of runtime consistency checks
+cross-checking
+Magic number
+
+APUE
+
+Atomic IO: pread, pwrite, open(O_CREAT|O_EXCL), dup, dup2
+O_ACCMODE, O_RDONLY, O_WRONLY, O_RDWR
+ext2 don't really implement O_SYNC
+_GNU_SOURCE for S_ISSOCK on Linux
+S_ISUID， S_ISGID, S_ISVTX for st_mode
+新建文件，要求对所在目录有写和执行权限
+删除文件，要求对所在目录有写和执行权限，对被删文件没有权限要求
+新文件的UID为进程的EUID，新文件的GID可以是进程的EGID也可以是所在目录的GID（要求目录S_ISGID，但新文件不会有S_ISGID）
+_POSIX_CHOWN_RESTRICTION不允许chown，S_ISVTX不支持, 空洞不支持（truncate，lseek），硬链接link不支持，打开的文件或目录不能删除
+BUFSIZE,
+inode里不存文件名，目录项里存文件名和ino，NAME_MAX，PATH_MAX
+被中断后自动重启的系统调用：ioctl、read、readv、write、writev、wait、waitpid
+信号处理函数调用不可重入函数，如malloc，结果不可预期
+信号处理函数唯一可以改变的是sig_atomic_t变量
+fork之前改变对信号的配置，如忽略、阻塞、回调等
+尽量少系统调用，写少量数据的话，复制到一个buffer调用write一次比writev从多个iov写要快
+mmap for read？
+
+
+TODO:
+use Type for argument and convert to FileType with type check
+read only mount and check
+concurrent map and multi-thread
+lru/2 cache and cache aging
+maintains lookup count by create mknod, mkdir, lookup, forget
+unlink, rmdir, rename deffered deletion
+store modified attribute to disk?
+zero copy
+cache partial file content
+
+Concurrency Tips:
+use drop explicitly
+std::alloc::handle_alloc_error for OOM
+T: Sync if &T: Send
+Sync + Send is = thread-safe
+
+// Rust malloc
+data: Box::into_raw(boxed_data),
+let node = Box::into_raw(Box::new(Node::default()));
+// Rust malloc
+let mut data: Vec<Option<T>> = Vec::with_capacity(capacity);
+for _ in 0..capacity {
+    data.push(None);
+}
+let raw_data = (&mut data).as_mut_ptr();
+mem::forget(data);
+// Buffer IO
+BufReader and BufWriter
+// use thread builder not spawn
+thread::Builder
+// for_each avoid collect
+for_each vs map
+// Functional
+inspect, filter_map, and_then, or_else, chain, zip, cycle, all, skip_while, take_while, step_by, position, sum, product
+// Itertools
+iter::empty, iter::once, iter::repeat
+batching, chunks, tuples, cartesian_product
+// lifetime bound
+struct Ref<'a, T: 'a>(&'a T);
+// errno to Err
+Result::Err(toErrorCode(err))
+// memoization pattern, cache pure function only
+#[macro_use] extern crate cached;
+cached!{
+    FIB;
+    fn fib(n: u64) -> u64 = {
+        if n == 0 || n == 1 { return n } fib(n-1) + fib(n-2)
+} }
+   fn main() {
+      fib(30); //call 1, generates correct value and returns it
+      fib(30); //call 2, finds correct value and returns it
+}
+// side-effect hiding, lazy evaluation using Monad pattern
+let notyet = LazyMonad::_return(()).bind(|x| x+2).bind(|y| y*3).bind(|z| format!("{}{}", z, z));
+let nowdoit = notyet.apply(222);
+// multi line string
+r###" "###;
+// TODO macro
+todo!();
+// use crate flame for profiling
+fn main() {
+    flame::start("fn main");
+    thread::sleep(t);
+    flame::end("fn main");
+    flame::dump_html(&mut File::create("flame-graph.html").unwrap()).unwrap();
+}
+// Copy int to print macro
+let my_int = 76_u32;
+println!("{}", {my_int});
+// Partial default initializatin
+SomeOptions { foo: 42, ..Default::default() }
+
+use Box::pin() combined with Pin::as_mut() for heap pinning instead of using stack pinning
+recursive enum definitions must wrap the inner value in a container such as Box, otherwise the size would be infinite
+if it's smaller than or equal to usize, copy, always; between usize and 10 times that size, it's probably better to copy
+empty enumerations cannot be instantiated
+use unwrap_or_else() instead of unwrap_or()
+use sort_unstable() instead of sort()
+BufWriter
+include!(concat!(env!("OUT_DIR"), "/phf.rs"));
+
+_ => unreachable!(),
+void (*signal(int, void (*func)(int)))(int)
+^? ^\ ^c ^z
+
+INIT
+STATFS
+GETATTR
+OPENDIR
+LOOKUP
+READDIR
+RELEASEDIR
+
+clap
+slog
+toml
+cargo-fuzz
+https://github.com/postmates/hopper
+https://github.com/blt/hopper-fuzz
+https://github.com/BurntSushi/quickcheck
+https://github.com/rust-fuzz/afl.rs
+https://github.com/bheisler/criterion.rs
+
+# upload file to transfer.sh
+curl --upload-file ./hello.txt https://transfer.sh/hello.txt
+
+# for openconnect
+https://www.alibabacloud.com/blog/how-to-set-up-an-openconnect-vpn-server_595185
+
+# for rust
+cat <<EOF >>~/.profile
+export RUSTUP_DIST_SERVER=https://mirrors.tuna.tsinghua.edu.cn/rustup # for rust components
+export RUSTUP_UPDATE_ROOT=https://mirrors.ustc.edu.cn/rust-static/rustup # for rust-init
+EOF
+
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+rustup self uninstall
+# Rust开发环境的setup
+https://hoverbear.org/blog/setting-up-a-rust-devenv/
+
+# Install Sogou PinYin
+https://pinyin.sogou.com/linux/guide
+
+sudo dpkg -i com.alibabainc.dingtalk_1.2.0.132_amd64.deb
+sudo dpkg -r com.alibabainc.dingtalk
+sudo dpkg -P com.alibabainc.dingtalk
+# To check if packagename was installed, type:
+dpkg -s <packagename>
+# You can also use dpkg-query that has a neater output for your purpose, and accepts wild cards, too.
+dpkg-query -l <packagename>
+# To find what package owns the command, try:
+dpkg -S `which <command>`
+# Check package version
+apt list <packagename>
+
+# show installed packages
+apt-mark showauto
+apt-mark showmanual
+# mark a package as auto installed
+apt-mark auto libibverbs-dev
+# to search
+apt-cache search XXXXX
+# to list
+apt list --installed
+dpkg -l
+snap list
+# to uninstall
+sudo apt remove package_name_1 package_name_2
+sudo apt purge package_name # also remove config files
+sudo apt autoremove # after remove or purge, autoremove dependencies
+sudo snap remove package_name
+
+# for cc
+sudo apt install build-essential
+# for all performance monitoring tools
+sudo apt-get install sysstat linux-tools-common linux-tools-$(uname -r) iproute2 # msr-tools: for x86 only
+sudo snap install bcc bpftrace bpfcc-tools
+# for sccache
+sudo apt install pkg-config libssl-dev
+cargo install sccache
+export RUSTC_WRAPPER=sccache
+# for go
+go build -o bin/main main.go
+# for shadowsocks
+sudo apt install shadowsocks-libev
+sudo vim /etc/shadowsocks-libev/config.json
+sudo systemctl disable/enable/restart shadowsocks-libev
+
+cat <<EOF >/etc/shadowsocks-libev/config.json
+{
+    "server":["129.159.42.23"],
+    "mode":"tcp_and_udp",
+    "server_port":28388,
+    "local_port":1080,
+    "password":"gibson.ovation@gmail.com",
+    "timeout":60,
+    "method":"xchacha20-ietf-poly1305"
+}
+EOF
+
+# run iptables to allow ingress to Oracle cloud vm
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 28388 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p udp --dport 28388 -j ACCEPT
+
+cat <<EOF >~/.cargo/config
+[source.crates-io]
+registry = "https://github.com/rust-lang/crates.io-index"
+replace-with = 'ustc'
+[source.ustc]
+registry = "git://mirrors.ustc.edu.cn/crates.io-index"
+EOF
+
+rustc -C opt-level=3 data_race02.rs
+rustc -O -g main.rs -o <output-program-name> # -O for release build, -g for debug info
+rustc -C rpath # look for dynamic libraries
+
+valgrind --tool=memcheck target/x86_64-unknown-linux-gnu/debug/hello_world
+valgrind --tool=massif target/x86_64-unknown-linux-gnu/debug/hello_world
+valgrind --tool=cachegrind --branch_sim=yes target/x86_64-unknown-linux-gnu/debug/hello_world
+cg_annotate cachegrind.out
+valgrind --tool=helgrind --history-level=full --log-file="results.txt" ./data_race00
+valgrind --tool=callgrind --separate-threads=yes ./data_race00
+valgrind --tool=callgrind --simulate-cache=yes --dump-instr=yes --collect-jumps=yes ./data_race00
+callgrind_annotate --auto=yes callgrind.out.$pid
+callgrind_annotate --auto=yes --show=D2mr --sort=D2mr
+qcachegrind # kcachegrind
+python gprof2dot.py -f callgrind -o <output>.dot callgrind.out.<pid>
+dot -Tpng <output>.dot -o <DocName>.png
+valgrind --tool=drd --exclusive-threshold=10 ./data_race00
+
+# oprofile # sudo apt install oprofile
+operf
+opannotate oprofile_data
+
+man syscalls # Linux
+sudo dtrace -l -v -n 'syscall:::entry' # MacOS
+sudo dtrace -qn 'syscall::write:entry, syscall::sendto:entry /pid == $target/ { printf("(%d) %s %s", pid, probefunc, copyinstr(arg1)); }' -p $SERVER_PID
+sudo filebyproc.d
+sudo dtrace -n 'syscall:::entry /pid==$target/ {}' -c "cmd"
+sudo dtruss -f -p pid # pid can be a shell `echo $$`
+sudo dtruss -f -d -eo -p 571 # print relative time, elapsed time, CPU time
+sudo dtruss -f -a -p 571 # print relative time, elapsed time, CPU time
+sudo dtruss -n "process name" hfsslower.d # track by process name
+sudo lockstat -C "cmd" &> lockstat.log
+sudo execsnoop
+sudo fs_usage | grep -i open
+sudo filebyproc.d
+sudo opensnoop
+
+cat /proc/cpuinfo
+cat /proc/meminfo
+cat /proc/kallsyms # kernel functions
+# tcp_retransmit_skb # kernel function, tcp retransmit
+# tcp_cleanup_rbuf # kernel function
+# __alloc_fd
+
+man syscall
+# Arch/ABI      arg1  arg2  arg3  arg4  arg5  arg6  arg7  Notes
+# x86-64        rdi   rsi   rdx   r10   r8    r9
+
+cat /sys/kernel/debug/tracing/events/block/block_rq_insert/format
+sudo ls /sys/kernel/debug/tracing # ftrace, or maybe kprobe
+
+# eBPF bcc tools, installed in /sbin (/usr/sbin in Ubuntu 18.04) with a -bpfcc extension.
+sudo apt-get install bpfcc-tools linux-headers-$(uname -r)
+funccount-bpfcc '*alloc*fd*' # count kernel function calls with name matching
+funccount-bpfcc -i 1 '*icmp*' # count every second
+funccount-bpfcc -i 1 '*tcp*'
+funccount-bpfcc -i 1 'bio_*'
+funcslower-bpfcc 'icmp_rcv' 2 # tracing function calls slower than 2 ms
+perf probe -n -v 'icmp_out_count net->ifindex' # -n: dry run, -v: verbose， find out kernel function and argument from kernel debuginfo
+cat /proc/kallsyms | grep " T " # list call kprobe enabled kernel functions
+trace-bpfcc do_sys_open # trace a kernel function
+trace-bpfcc ksys_read
+trace-bpfcc -KU __alloc_fd # trace who's calling this kernel function
+tcplife-bpfcc # `tcplife-bpfcc -L 22`: show connection to this local port, trace TCP sessions with PID, bytes, and duration
+trace-bpfcc # `trace-bpfcc 'sys_read (arg3 > 20000) "read %d bytes", arg3'`: reads over 20000 bytes
+argdist-bpfcc # `argdist-bpfcc -H 'p::tcp_cleanup_rbuf(struct sock *sk, int copied):int:copied'`: histogram of tcp_cleanup_rbuf() copied argument
+tcptop-bpfcc
+ttysnoop-bpfcc /dev/pts/1 # use `tty` to find out which terminal, and then use `ttysnoop-bpfcc` to find out what's doing in the terminal
+time $COMMAND # find out the execution time of a command, splits into real, user, system times
+perf stat $COMMAND # profiling a command
+perf stat -e block:block_rq_complete -a sleep 10 # trace a counter of all CPU for 10 seconds
+perf stat -e cycles,instructions,cache-references,cache-misses,bus-cycles -a -- sleep 10 # trace hardware
+argdist-bpfcc -i 5 -C 'p::cap_capable():int:ctx->dx' # count of DX register when cap_capable is called for every 5 seconds
+bpflist-bpfcc # display processes currently using BPF programs and maps
+
+# Off-CPU flamegraph
+sudo offcputime-bpfcc -uf > out.offcpustacks # -u: user threads only, -f: fold
+./flamegraph.pl --color=io --countname=us --width=900 --title="Off-CPU Time Flame Graph: idle system" < out.offcpustacks > offcpu.svg
+# PRELOAD=/path/to/my/malloc.so /bin/ls to specify customized libraries used by java, etc
+
+# bcc/eBPF General Performance Checklist
+1.  execsnoop # `execsnoop-bpfcc -T`: find out which cmds are running, discover short-lived processes, -x/--fails: include failed exec()s
+2.  opensnoop # show what files being opened, -p PID: trace this PID only, -t TID:  trace this TID only, -u UID: trace this UID only
+3.  ext4slower (...) # `ext4slower-bpfcc 1`: tracing ext4 operations slower than 1 ms, T as type: S for synchronized IO,
+4.  biolatency # `biolatency-bpfcc -mT 10 1`: find out multimodal disk I/O latency and outliers, -m: millisecond histogram, -T: include timestamp on output, for 10 seconds, run once
+5.  biosnoop # find out each disk IO life
+6.  cachestat
+7.  tcpconnect
+8.  tcpaccept
+9.  tcpretrans # retransmit in SYN SEQUENCE state is fine, but retransmit in ESTABLISHED, SYN SENT state means something strange, it might hit a backlog
+10.  gethostlatency # find out DNS latency issues system wide
+11.  runqlat # `runqlat-bpfcc 10 1` examine CPU scheduler run queue latency as a histogram, every 10 seconds, for once, CPU saturation, find out kernel scheduling issue
+12.  profile
+
+# BPF
+# for CPU
+execsnoop-bpfcc -T # find out short-lived processes, or what's running behind a build process
+ttysnoop-bpfcc /dev/pts/1 # use `tty` to find out which terminal, and then use `ttysnoop-bpfcc` to find out what's doing in the terminal
+runqlat-bpfcc 10 1 # run queue latency, scheduling is very frequent, millions per second, BPF brings 70ns overhead each scheduling event
+runqlat-bpfcc -m 5 # -m: millisecond histogram, run for every 5 seconds
+runqlen-bpfcc 10 1 # run queue length, 99Hz sampling of queue length, much less overhead than runqlat-bpfcc
+cpudist-bpfcc -p $PID 10 1 # show CPU time histogram of a process, for 10 seconds duration once
+cpudist-bpfcc -p $(pidof CMD) # show CPU time histogram of a process, helps understand the context-switching characteristics of your application, it is these smaller context switch intervals that we should be worried about
+# for Off-CPU
+cpudist-bpfcc -O -p $(pidof CMD) # histogram of time intervals when some application thread was off the CPU waiting for something
+offcputime-bpfcc -p $PID # collects stack traces whenever an application thread is blocked (switched off the CPU), and identifies the duration of time that blockage lasted
+offcputime-bpfcc -f -u 30 # -f: output folded format, -u: print only user-mode stacks, for 30 seconds
+offcputime-bpfcc -f -p $(pidof CMD) > folded-stacks && ./flamegraph.pl --color=io folded-stacks > offcpu.svg # generate off-cpu flamegraph
+# for memory
+memleak-bpfcc -p $PID # show the top 10 stacks sorted by oustanding allocations, allocations performed and not freed since the tool has attached to the process
+ffaults.bt # file page faults
+# for disk IO
+# Limitation of biosnoop: if you use an encrypted filesystem, you may see the I/Os requests as occuring on behalf of dmcrypt.
+biosnoop-bpfcc # instrumenting disk IO event life, start time, end time, duration, etc
+biosnoop.bt # find out the actual I/O operations and their latencies
+biolatency-bpfcc -mT 1 5 # histogram for disk IO latency, run for every 1 second, totally 5 times
+biolatency.bt # histogram for disk IO latency
+bitesize-bpfcc # histogram of disk IO size
+biotop # find out which processes are doing block IO
+stackcount-bpfcc -i 10 submit_bio # show the call stacks submitting these I/Os in the kernel, at 10 second intervals
+# for FS
+fileslower 1 # tracing sync read/writes slower than 1 ms, find out which files are writing, and which operations are taking a bit longer than others:
+opensnoop-bpfcc # find out what files are being opened system wide
+opensnoop-bpfcc -p $PID # find out what files are being opened by a process
+ext4slower-bpfcc 1 # ext4 FS IO slower than 1ms
+ext4slower-bpfcc 0 # all ext4 FS IO
+ext4dist-bpfcc # histogram of latency for each type of FS operation, such as read, open, write, etc. summarizes the latency of Btrfs reads, writes, opens, and fsync operations into power-of-two buckets
+cachestat-bpfcc # FS cache statistics
+xfsslower-bpfcc 50 # find out XFS I/O slower than a threshold (variants for ext4, btrfs, zfs)
+xfsdist-bpfcc 60 # show XFS I/O latency histograms, by operation
+readahead.bt # show the histogram of how readahead populating the cache, like how many pages loaded by readahead will be read in 0~32ms?
+echo 1 > /proc/sys/vm/drop_caches # to clear the file system cache
+syncsnoop-bpfcc # tracepoint:syscalls:sys_enter_sync
+# for interrupt
+hardirqs-bpfcc 1 # summary of time spent servicing various interrupts, run for every second
+# for network
+tcptop-bpfcc # summarize TCP send/recv throughput by host
+tcpconnect-bpfcc # outbound TCP connections, who I'm connecting to
+tcpconnect-bpfcc -t # tracing tcp connection kernel function only, not tcp send or receive
+tcpaccept-bpfcc # inbount TCP connections, who's connecting me
+tcpretrans-bpfcc # TCP retransmit
+gethostlatency-bpfcc # instrument the resolver library/DNS, show the DNS resolution latency
+tcplife-bpfcc # show TCP session lifespans with connection details, MS: session duration in milliseconds
+tcpsynbl.bt # show TCP SYN backlogs as histograms, backlog means kernel buffer some inbound sessions
+# for tracing
+bpftrace -e 'tracepoint:raw_syscalls:sys_enter { @[pid, comm] = count(); }' # show most called syscalls
+funccount-bpfcc 'tcp_s*' # count native function calls (C, C++, Go, etc.)
+funccount-bpfcc -i 1 '*icmp*' # count kernel function calls match icmp, run for every 1 second
+funclatency-bpfcc icmp_out_count # show the latency histogram for this icmp_out_count function calls
+funclatency-bpfcc -m "$(which node):*PerformGarbageCollection*" # get a latency histogram of a function in the Node binary, -u: microsecond histogram, -m: millisecond histogram
+funcslower-bpfcc icmp_rcv 1 # show the function all to imcp_rcv slower than 1ms
+trace-bpfcc icmp_out_count # find out who's calling this icmp_out_count function
+trace-bpfcc -T -K 'icmp_out_count "#2 arg=%d" arg2' # output the detail of this icmp_out_count function, what's its second argument, -T: add time column, -K: output kernel stack trace
+trace-bpfcc -I net/net_namespace.h 'icmp_out_count(struct net *net, unsigned char type) "net->ifindex=%d, type=%d", net->ifindex, arg2' # -I: include header for this icmp_out_count function definition
+argdist-bpfcc -I net/net_namespace.h -i 10 -C 'p::icmp_out_count(struct net *net, unsigned char type):int:net->ifindex' # -I: include header, -i: run interval, -C: counter, -H: histogram
+trace-bpfcc 'sys_read (arg3 > 20000) "read %d bytes", arg3' # trace the read syscall and print a message for reads >20000 bytes
+argdist-bpfcc -H 'p::tcp_cleanup_rbuf(struct sock *sk, int copied):int:copied' # histogram of the copied argument of this tcp_cleanup_rbuf function
+trace-bpfcc -T -K 'do_open_execat "fd=%d, fname=%s, flag=%d" arg1,arg2,arg3'
+bpftrace -e 'profile:hz:99 /pid == 20071/ { @[ustack] = count(); }' > /tmp/fg_bp1.txt
+syscount.bt -p $PID # find out all syscall events from a process
+argdist-bpfcc -p $PID -H 'p::do_nanosleep(struct timespec *time):u64:time->tv_nsec' # histogram of the time->tv_nsec argument in this do_nanosleep function
+argdist-bpfcc -p $PID -C 'p:c:open(char *filename):char*:filename' # count of different filename argument in this open function
+argdist-bpfcc -p $PID -C 'r:c:open():int:$retval' # count of different return value of this open function
+stackcount-bpfcc -p $PID c:malloc # count call stacks for malloc in PID
+stackcount-bpfcc -p $(pgrep -n node) "u:$(which node):gc__start" # attaching to the gc__start probe
+trace-bpfcc 'sys_setuid "uid=0x%x", arg1' 'r::sys_setuid "rc=%d", retval' # trace setuid call and return
+trace-bpfcc '::sys_setuid "uid = %d", arg1' # trace setuid syscall, setuid is call when doing su, ssh
+argdist-bpfcc -T 5 -i 5 -C 'p::__vfs_write(struct file *f):char*:f->f_path.dentry->d_name.name#writes' -C 'p::__vfs_read(struct file  *f):char*:f->f_path.dentry->d_name.name#reads'
+argdist-bpfcc -C 't:irq:irq_handler_entry():int:args->irq' # prints the number of times irq_handler_entry() is called, along with which interrupt was raised
+# for dynamic tracing
+trace-bpfcc 'c:malloc "size=%d", arg1' # trace the malloc function and show the memory allocation size argument
+trace-bpfcc 'c:write "size=%s", arg2' # trace the write input buffer
+trace-bpfcc 'c:read "size=%s", arg2' # trace the read input buffer
+bpftrace -e 'kretprobe:sys_read { @bytes = hist(retval); }' # show the histogram of sys_read return size
+# for USDT
+calls # summarizes method calls
+uflow # traces function entry and exit and prints a visual flow graph
+ugc # traces garbage-collection events
+uobjnew # prints summary statistics for new object allocations
+uthreads # prints details on thread creation
+ustat # a monitoring tool that pulls all of these together and displays their events with a top-like interface
+bashreadline-bpfcc # find out what commands bash is running from all users
+trace-bpfcc 'u:/lib/aarch64-linux-gnu/libc-2.31.so:memory_sbrk_more "%u", arg1' -T #
+trace-bpfcc 'u:/lib/aarch64-linux-gnu/libpthread.so.0:pthread_start' # trace libpthread trace point pthread_start
+trace-bpfcc -p $PID 'u:/opt/node/node:http__server__request "%s %s", arg5, arg6' # trace node.js node:http__server__request USDT event
+trace-bpfcc 'u:/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.77-1.b03.fc22.x86_64/jre/lib/amd64/server/libjvm.so:class__loaded "%s", arg1' # trace JDK class__loaded
+argdist-bpfcc -C 'u:/usr/lib/.../libjvm.so:method__entry():char*:arg4' -T 5 # -T 5: top 5 counters
+trace-bpfcc -o 'u:/usr/lib/.../libjvm.so:method__entry "%s.%s", arg2, arg4' 'u:/usr/lib/.../libjvm.so:method__return "%s.%s", arg2, arg4' # trace each method call and return in JVM
+# for profiling
+profile-bpfcc -F 997 -p $(pidof CMD)
+profile-bpfcc -dF 99 30 | ./FlameGraph/flamegraph.pl > perf.svg # -d: insert delimiter between kernel/user stacks, -F: sample freequency, for 30 seconds
+profile-bpfcc -f # profile CPU stack traces at a timed interval, -f: output in folded format for flame graphs
+profile-bpfcc -F 99 -p $PID # java preserve frame pointer: -XX:+PreserveFramePointer -XX:+ExtendedDTraceProbes, java run in compiled mode after interpret 10 methods: -XX:CompileThreshold=10, JIT symbal table for perf /tmp/perf-PID.map, jmaps for java JIT symbal table
+
+# list trace points
+sudo bpftrace -l # list all the hardware, timer, kprobe and kernel static tracepoints by running
+nm /path-to-binary # list all the uprobe tracepoints (function symbols) of an app or library by running
+nm -n -a /usr/lib/libc-2.28.so # list symbols in file(s) (a.out by default), -a: display debugger-only symbols, -n: sort symbols numerically by address
+tplist-bpfcc -l /path-to/binary # list all the USDT tracepoints of an app or library by running
+/sys/kernel/debug/tracing/available_events # tracepoints
+/sys/kernel/debug/tracing/available_filter_functions # kprobe functions
+/sys/kernel/debug/tracing/available_tracers # tracers
+sudo ls /sys/kernel/debug/tracing/events/ # inside this directory, *event-cateogry*/*event*/format show the tracepoint args
+tplist-bpfcc -l ./$COMM/$LIB # list USDT probes in the specified library or executable
+tplist-bpfcc -vv -l /lib/aarch64-linux-gnu/libpthread.so.0 '*lock*' # show USDT trace points and argument details in libpthread, matching *lock*
+tplist-bpfcc -p $PID # list USDT probes in the specified process
+tplist-bpfcc -l $LIB -vv '*server__request' # print out more details about the server__request probe
+tplist-bpfcc -p $PID '*class*loaded' # show matched USDT trace points
+bpftrace -l 'tracepoint:syscalls:sys_enter_*' # list probes
+bpftrace -vl tracepoint:syscalls:sys_enter_openat # show tracepoint details, including args struct
+perf list | grep -i hardware
+perf list | grep Tracepoint # static kernel trace point
+perf list | grep Tracepoint | grep block # block IO trace point
+cat /proc/kallsyms | grep " T " | grep sys_read # kprobe symbals, all the kernel functions can be used in kprobe
+perf list 'block:*' # static kernel trace point
+
+# for MySQL
+dbslower.py mysql -m 1000 # tracing MySQL queries slower than 1000 ms
+mysqld_qslower-bpfcc $(pgrep mysqld) # find out MySQL slow queries
+# for kernel
+workq.bt # kernel work queue function execution times
+# for VM
+xenhyper.bt # count hypercalls from Xen PV guests
+# for container
+blkthrot.bt # count block I/O throttles by blk cgroup
+
+# generate IO workload
+dd if=/dev/zero of=/dev/null bs=1K count=1M
+sha1sum /dev/zero
+
+# for bpftrace
+bpftrace -e 'kr:vfs_read { @ = hist(retval); }'
+bpftrace -e 'kprobe:__iwl_dbg { printf("%s", str(arg4)); }'
+bpftrace -e 't:block:block_rq_issue { @[args->rwbs] = count(); }' # rwbs: type field of block IO, R: # of read, WS: # of synchronuous write
+bpftrace -e 't:block:block_rq_issue { @bytes[comm] = hist(args->bytes); }' # show histogram of the block IO size for each process
+bpftrace -e 't:syscalls:sys_enter_open { printf("%s %s\n", comm, str(args->filename)) }' # files opened by process
+bpftrace -e 't:syscalls:sys_exit_read { @[comm] = hist(args->ret) }' # read size distribution by process
+bpftrace -e 'kprobe:vfs_* { @[func]++ }' # Count VFS calls
+bpftrace -e 'k:vfs_read { @[tid] = nsecs } kr:vfs_read /@[tid]/ { @ns = hist(nsecs - @[tid]); delete(@tid) }’ # show vfs_read latency as a histogram
+bpftrace -e 'uretprobe:bash:readline { printf(“%s\n”, str(retval)) }’ # Trace user-level function
+
+# for bpftool
+bpftool perf # show what BPF programs are running, and what events they are instrumenting
+bpftool prog dump jit id $PID # list instructions/assembly for some running process
+bpftool prog # show current running BPF programs details
+bpftool prog dump xlated tag $TAG # dump byte code of a BPF program with TAG
+bpftool prog dump jit tag $TAG # dump JIT code of a BPF program with TAG
+bpftool map # show the currently used maps
+bpftool map dump id $MAP_ID # show the details about a map with MAP_ID showed from `bpftool map`
+
+perf stat -b BPF_TAG/ID/NAME # perf for BPF programs
+
+IPC: instructions per cycle
+LLC: last level cache or longest latency cache
+PSI: pressure stole information that splits load average into CPU, memory and disk IO
+MSR: module specific register
+
+FlameScope: subsecond-offset heat map, for analyze variance, perturbations https://github.com/Netflix/flamescope
+
+perf stat -e cs -a -p $PID -I 1000 # cs: context switch
+perf trace -p $PID # do not use strace in production, use perf trace instead
+nstat -s # replacement for netstat
+slabtop # kernel use slab as allocator, show kernel memory usage
+file /usr/lib/libc-2.28.so # show the details of a library, e.g. stripped or not
+readelf -n $BINARY # check the stap debug section to find out USDT
+nm -n -a /usr/lib/libc-2.28.so # list symbols in file(s) (a.out by default), -a: display debugger-only symbols, -n: sort symbols numerically by address
+objdump -tT `which bash` | grep readline # uprobe find out a function of bash whose function name contains 'readline'
+objdump -x ./tick | less # uprobe find out the USDT load address
+
+# The maximum number of files that can be watched
+cat <<EOF >>/etc/sysctl.conf
+fs.inotify.max_user_watches=524288
+EOF
+sudo sysctl -p # reload sysctl.conf
+
+sudo sysctl -w kernel.perf_event_paranoid=-1 # enable non-root user to use perf
+perf stat --event task-clock,context-switches,page-faults,cycles,instructions,branches,branch-misses,cache-references,cache-misses ./data_race02
+perf stat -a -d
+perf trace
+perf record -e cpu-clock -g -p pid
+perf script -i perf.data &> perf.unfold
+cat tmp.unfold | ~/Downloads/FlameGraph/stackcollapse-perf.pl | ~/Downloads/FlameGraph/flamegraph.pl > tmp.svg
+
+perf stat -e 'ext4:*' -a
+perf stat -e 'ext4:*' -a sleep 10
+perf record -F 99 -a -g -- sleep 10 # -F: sample frequency in Hz, -a: for all CPU, -g: for call stacks or call graphs
+perf record -g -F 997 -- ./primes # profile a program, -t: trace only a single thread within a process
+perf report -n --stdio # show report in terminal
+perf record -g dwarf # fix broken stacks
+perf script
+perf script > tmp.unfold
+perf top # like top, but perf version top
+perf annotate -i perf.data --stdio
+perf record -e cycles:ppp
+
+Utilization: busy time
+Saturation: queue length or queued time
+Error: easy to interprete
+
+NOT INSTALLED: dstat, atop, pcstat
+Packages: sysstat, procps, coreutils
+iostat -x 1
+netstat -s # protocal stat
+netstat -i # interface stat
+netstat -r # route table
+netstat -p # process detail
+netstat -c # continue listing
+ss # socket stat
+sar -n DEV 1 # check network IO, similar to dstat
+strace -p `pgrep $PROCESS_NAME`
+strace -p `pidof $PROCESS_NAME`
+strace -e bpf,read,write,openat,perf_event_open,ioctl $COMMAND # trace multiple syscalls
+pkill $PROCESS_NAME
+uptime # load average, CPU saturation
+htop
+ps -ef f # show process tree
+ps -eo user,sz,rss,minflt,majflt,pcpu,args
+vmstat -Sm 1 # r: run queue length for CPU, swpd: swapping, so & si: swap ins and swap outs, non-zero means oom,
+iostat -xmdz 1 # r/s: read per second, w/s write per second, rMB/s: read throughput, wMB/s: write throughput, avgqu-sz: average queue size, await: average wait time in millisecond for block device of disk IO, svctm: service time, average await time removes queuing time, %util: busy time percentage, %util>60% means IO issues
+mpstat -P ALL 1 # look for unbalanced CPU, hot CPU
+free -m # buffers: block device IO cache, cached: virtual page cache
+strace -ttt -T -p $PROCESS_ID # -ttt: time(us) since epoch, -T: syscall time
+strace -t -p $PROCESS_ID 2>&1 | head 100 # -t timestamp, only use strace to trace recent 100 syscalls
+nicstat 1 # similar result format as iostat
+pidstat -t 1 # per-thread break down for CPU usage
+pidstat -d 1 # per-process block device IO
+pidstat -u -p $(pidof server) 1 # -u: CPU usage, run for every second
+swapon -s # swap device usage if enabled swap
+lsof -iTCP -sTCP:ESTABLISHED # current active network connections
+sar -n TCP,ETCP,DEV,EDEV 1 # System Activity Reporter, ETCP: TCP error, DEV: network interface device, EDEV: network interface device error, active: outbound connections, passive: inbound connections, retrans: re-transimit
+ss -mop # socket stat, mem: buffer size
+ss -i # rcv_space: receive space
+iotop # block device I/O (disk) by process
+slabtop # kernel slab allocator memory usage
+pcstat $FILE_NAME # install from github, page cache residency in memory percengage by file
+tiptop # PMC: performance measurement counter for hardware events, IPC: instructions per cycle, MISS: cache miss
+
+# for both us and sy CPU usage high:
+vmstat -> mpstat -> pidstat -> iostat -> sar
+
+fio --name=seqwrite --rw=write --bs=128k --size=122374m # filesystem, disk IO banchmarking
+
+arp -na
+netstat -rn # route table
+ip route get $IP_ADDRESS # route path for one IP
+sudo route add -net 10.67.0.0/16 gw 192.168.120.254 # Linux
+sudo route -n add -net 10.67.0.0/16  192.168.120.254 # MacOS
+
+# perf profiling
+perf record -F 99 -a -g -- sleep 30 # generate perf.data
+perf script | ./stackcollapse-perf.pl |./flamegraph.pl > perf.svg # generate flame graph perf.svg
+
+# perf tracing
+perf record -e block:block_rq_complete -a sleep 10
+perf script
+
+sudo pstack pid
+sudo gdb -p pid
+
+lldb
+(lldb) file <program path>
+(lldb) apropos <keyword>
+(lldb) command alias bfl breakpoint set -f %1 -l %2 # (lldb) bfl foo.c 12
+(lldb) command unalias bfl
+(lldb) file /Projects/Sketch/build/Debug/Sketch.app
+(lldb) breakpoint [set|delete|clear|enable|disable|list]
+(lldb) breakpoint delete 1
+(lldb) breakpoint command add 1.1
+Enter your debugger command(s). Type 'DONE' to end.
+> bt
+> DONE
+(lldb) r c bt s n f
+(lldb) process attach --pid <pid>
+(lldb) process attach --name <process name> --waitfor
+(lldb) thread until 100
+(lldb) thread list
+(lldb) thread backtrace
+(lldb) thread backtrace all
+(lldb) thread select 2
+(lldb) thread return <RETURN EXPRESSION>
+(lldb) frame variable --format x bar
+(lldb) frame select --relative -3
+(lldb) image list
+
+vim -b Hello.class
+:%!xxd -c 12 将当前文本转换为16进制格式,并每行显示12个字节
+:%!xxd -r 将当前文件转换回文本格式
+
+
+cargo install cargo-profiler
+cargo profiler callgrind --bin ./target/debug/performance_profiling4 -n 10
+cargo profiler cachegrind --bin ./target/debug/rsmat -n 10 --sort dr
+
+cargo +nightly run --release --example hex -p stdsimd
+cargo +nightly bench # run bench
+cargo docs
+echo "a 55" | nc -c -u 127.0.0.1 1990
+sudo fuser -v -n tcp 22
+fuser -v -m example.txt
+
+Linux Perf Analysis in 60s
+uptime             # load averages
+dmesg -T | tail    # kernel errors
+vmstat 1           # overall stats by time
+mpstat -P ALL 1    # CPU balance
+pidstat 1          # process usage
+iostat -xmdz 1     # disk I/O
+free -m            # memory	usage
+sar -n DEV 1       # network I/O
+sar -n TCP,ETCP 1  # TCP stats
+top                # check overview, but top cannot catch short-live process
+
+# Ubuntu kernel update
+# Downloads latest stable kernel from https://kernel.ubuntu.com/~kernel-ppa/mainline/
+# The following two packages are needed:
+# linux-image-*X.Y.Z*-generic_*.deb
+# linux-modules-X.Y.Z*-generic_*.deb
+sudo dpkg --install linux-*.deb
+
+# Ubuntu install kernel headers
+# Downloads kernel headers from https://kernel.ubuntu.com/~kernel-ppa/mainline/
+# The following tow packages are needed:
+# linux-headers-X.Y.Z*_all.deb
+# linux-headers-X.Y.Z*-generic_*.deb
+sudo dpkg --install linux-headers-*.deb
+
+sudo -s # sudo -i
+RUST_LOG=debug RUST_BACKTRACE=full
+
+git fetch upstream
+git checkout master
+git rebase upstream/master
+
+git config --global user.name "Pu Wang"
+git config --global user.email "nicolas.weeks@gmail.com"
+git config --global core.editor "vi"
+
+git config --list
+
+git remote add upstream git@github.com:datenlord/datenlord.git
+git remote set-url origin git@git-repo:new-repository.git
+git remote -v
+git push origin --delete remoteBranchName
+
+git config --global http.proxy 'socks5://127.0.0.1:1080'
+git config --global --unset http.proxy
+
+git push --delete origin tagName
+git tag -d tagName
+
+# Git LFS
+brew install git-lfs
+sudo apt install git-lfs
+git lfs install # run this cmd in a git versioned directory
+git lfs track <LARGE FILE>
+git add .gitattributes # 管理文件.gitattributes添加入git仓库
+git lfs untrack <LARGE FILE>
+git lfs uninstall
+git rm --cached <LARGE FILE>
+git add <LARGE FILE>
+git add --renormalize .
+
+ALL_PROXY=socks5://127.0.0.1:1080 git clone https://github.com/some/one.git
+
+CARGO_HTTP_PROXY=socks5://127.0.0.1:1080 cargo build
+
+sudo timedatectl set-timezone EST
+timedatectl list-timezones
+sudo timedatectl set-timezone America/Los_Angeles
+timedatectl; ls -l /etc/localtime
+
+# for wine and WeChat
+sudo apt install wine winetricks
+winecfg # set screen resolution to 240dpi
+wine Downloads/WeChatSetUp.exe # to install WeChat
+cd ~/.wine/drive_c/
+winetricks # install fonts: corefonts, fakechinese, wenquanyi
+
+cat <<EOF >/tmp/fonts.reg #
+REGEDIT4
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\FontLink\SystemLink]
+"Lucida Sans Unicode"="msyh.ttc"
+"Microsoft Sans Serif"="msyh.ttc"
+"MS Sans Serif"="msyh.ttc"
+"Tahoma"="msyh.ttc"
+"Tahoma Bold"="msyhbd.ttc"
+"SimSun"="msyh.ttc"
+"Arial"="msyh.ttc"
+"Arial Black"="msyh.ttc"
+EOF
+
+# Add/Delete user
+sudo useradd -m -s $(which bash) -G sudo pwang
+sudo usermod -aG sudo pwang
+sudo deluser --remove-home pwang
+
+wine regedit /tmp/fonts.reg
+winetricks settings fontsmooth=rgb
+
+# desktop shortcut
+~/.config/menus/applications-merged/
+/usr/share/applications/
+
+# for zsh
+sudo apt install zsh
+chsh -s `which zsh` # set zsh as default shell
+# for omz
+sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+cat <<EOF >> ~/.zshrc
+. ~/.bash_aliases
+source <(kubectl completion zsh)
+EOF
+
+# for Merlin
+service httpd_restart
+service start_httpd
+
+# for snap
+snap install vlc // installed with --classic flag to access files outside user’s home directory
+snap search/find vlc
+snap list
+snap remove vlc
+
+# for VSCode
+sudo apt install ./code_1.48.2-1598353430_amd64\ \(1\).deb
+sudo apt-get purge code
+sudo snap install code --classic
+# for IDEA
+sudo snap install intellij-idea-community --classic
+
+# run http server
+python3 -m http.server
+
+# install pip3
+sudo apt install python3-pip
+
+# install default java JDK
+sudo apt install default-jdk
+
+# Install golang
+wget https://golang.org/dl/go1.15.5.linux-amd64.tar.gz
+tar -C /usr/local -xzf go*.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+
+# Install Docker
+sudo apt install docker.io
+sudo groupadd docker
+sudo usermod -aG docker $USER
+sudo systemctl restart docker
+# re-login to make it effectively
+
+sudo systemctl start docker
+sudo service docker start
+
+docker login # login to docker hub
+docker system prune --volumes
+
+# change Docker image folder
+vi /etc/docker/daemon.json
+{
+  "data-root": "/path/to/your/docker"
+}
+
+# change Docker registry source
+vi /etc/docker/daemon.json
+{
+   "registry-mirrors": [
+       "http://hub-mirror.c.163.com",
+       "https://mirror.ccs.tencentyun.com",
+       "https://docker.mirrors.ustc.edu.cn",
+       "https://cr.console.aliyun.com",
+       "https://registry.docker-cn.com"
+  ]
+}
+
+# enable Docker shared mount
+sudo mkdir /etc/systemd/system/docker.service.d/
+echo '[Service] MountFlags=shared' | sudo tee -a /etc/systemd/system/docker.service.d/mountflags.conf
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+# Docker trust insecure registry
+vi /etc/docker/daemon.json
+{
+  "insecure-registries" : ["10.0.2.4:32000"]
+}
+# restart to take effect
+sudo systemctl restart docker
+
+# install kubectl
+curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.19.0/bin/linux/amd64/kubectl && chmod +x kubectl
+sudo install kubectl /usr/local/bin/
+kubectl version --client
+kubectl cluster-info --context kind-k8s-test
+
+# install kind
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.9.0/kind-linux-amd64 && chmod +x ./kind
+sudo install kind /usr/local/bin/
+cat <<EOF > ./k8s-kind.yaml
+# three node (two workers) cluster config
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+- role: worker
+- role: worker
+EOF
+kind create cluster --name=kind-multiple --config=./kind-multiple.yaml
+ssh -L :34741:localhost:34741 -N kind.westus2.cloudapp.azure.com
+kind delete cluster --name=kind-multiple
+kind get clusters
+kind load docker-image datenlord/datenlord:e2e_test --name=kind-multiple
+kubectl cluster-info --context kind-kind-multiple
+
+# install minikube
+curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && chmod +x minikube
+sudo apt install conntrack # minikube requires this dependency when run without driver
+#sudo sysctl fs.protected_regular=0
+#sudo systemctl enable docker.service
+#sudo systemctl restart docker
+#sudo systemctl enable kubelet.service
+sudo install minikube /usr/local/bin/
+sudo minikube start --driver=none # need root
+#sudo mv /home/pwang/.kube /home/pwang/.minikube $HOME
+sudo chown -R $USER $HOME/.kube $HOME/.minikube
+
+minikube start --driver=docker # non-root
+minikube start --kubernetes-version v1.19.0
+minikube stop
+minikube delete # clear minikube's local state
+minikube addons list
+sudo minikube dashboard # first time run dashboard
+sudo minikube dashboard --url # just get url after run dashboard
+ssh -L :33375:localhost:33375 -N minikube.westus2.cloudapp.azure.com
+http://127.0.0.1:33375/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+
+# install microk8s
+sudo snap install microk8s --classic --channel=1.19
+sudo usermod -a -G microk8s $USER
+sudo chown -f -R $USER ~/.kube
+cat <<EOF >>.bash_aliases
+alias kubectl='microk8s kubectl'
+# alias kubectl="minikube kubectl --"
+EOF
+
+# microk8s dashboard
+microk8s enable dashboard
+kubectl port-forward -n kube-system service/kubernetes-dashboard 10443:443
+ssh -L :10443:localhost:10443 -N microk8s.westus2.cloudapp.azure.com
+kubectl config view --raw # get admin token
+- name: admin
+  user:
+    token: Rkp0Ung0UW9reHNpRnZ0aUpRM0pacG5FYWlmZnF6SWt3OU1OZzVuR3NtST0K
+
+# microk8s registry, localhost:32000/your-image
+microk8s enable registry:size=5Gi
+# microk8s allow privileged
+cat <<EOF >> /var/snap/microk8s/current/args/kube-apiserver
+--allow-privileged
+EOF
+microk8s.stop; microk8s.start
+
+# Docker trust insecure registry
+vi /etc/docker/daemon.json
+{
+  "insecure-registries" : ["10.0.2.4:32000"]
+}
+# restart to take effect
+sudo systemctl restart docker
+
+# ssh tunnel
+ssh -D 1080 -C -N microk8s.westus2.cloudapp.azure.com
+
+# for csi
+kubectl get CSIDriver
+kubectl get csidrivers.storage.k8s.io
+kubectl describe csidrivers.storage.k8s.io
+kubectl edit sc standard # standard is a csi driver name
+# for K8S
+kubectl cluster-info
+kubectl config get-contexts
+kubectl api-versions
+kubectl api-resources
+kubectl get events -A
+kubectl create deployment nginx --image nginx
+kubectl replace -f nginx.yaml
+kubectl diff -R -f configs/
+kubectl apply -R -f configs/
+kubectl edit ds/NAME
+kubectl delete daemonset DAEMON_SET_NAME --cascade=false # delete daemon set only not pods
+kubectl delete pod POD_NAME --grace-period=0 --force
+kubectl label
+kubectl get pods --namespace=<insert-namespace-name-here>
+kubectl config set-context --current --namespace=<insert-namespace-name-here>
+kubectl config view --minify
+kubectl api-resources --namespaced=true # In a namespace
+kubectl api-resources --namespaced=false # Not in a namespace
+kubectl get XXXXX --v=8 # --v flag set a verbosity level, see the request/responses against the Kubernetes API
+kubectl get pods -l 'environment in (production),tier notin (frontend)'
+kubectl get pods -l etcd_cluster=example-etcd-cluster -w # watch pods generating
+kubectl get pods --field-selector=status.phase!=Running,spec.restartPolicy=Always
+kubectl get pod -o yaml
+kubectl get pods --show-labels
+kubectl get deploy,rs,pod -o wide
+kubectl get pods -Lapp -Ltier -Lrole
+kubectl get pods -lapp=guestbook,role=slave
+kubectl get pods --selector="name=bad-frontend" --output=jsonpath={.items..metadata.name} # selector
+# kubectl run <name of deployment> <properties>
+kubectl run httpdeploy --image=katacoda/docker-http-server:latest --replicas=1
+kubectl run -i -t docker-test --image=ubuntu --restart=Never --command -- /bin/bash
+kubectl expose deployment httpdeploy --external-ip="172.17.0.9" --port=8000 --target-port=80 # expose the container port 80 on the host 8000 binding to the external-ip of the host, curl http://172.17.0.9:8000
+kubectl scale --replicas=3 deployment httpdeploy
+# expose the Pod via Docker Port Mapping not by service
+kubectl run httpexposed --image=katacoda/docker-http-server:latest --replicas=1 --port=80 --hostport=8001
+# generate yaml
+kubectl run --image=nginx my-deploy -o yaml --dry-run > my-deploy.yaml
+kubectl get my-deploy/nginx-o=yaml --export > my-deploy.yaml
+kubectl explain pods.spec.containers
+# for debug
+kubectl describe TYPE NAME
+kubectl logs csi-controller-datenlord-0 -c datenlord-controller-plugin
+kubectl exec -it csi-controller-datenlord-0 -n datenlord-csi -c datenlord-controller-plugin -- /bin/bash
+# expose service
+kubectl expose deployment redis --port=6379
+kubectl get endpoint
+kubectl get storageclass -o wide
+# oc proxy
+oc proxy --port=8001 # proxy local requests on port 8001 to the Kubernetes API
+curl -X GET http://localhost:8001/api/v1/pods | jq .items[].metadata.name
+curl -X GET http://localhost:8001/api/v1/namespaces/myproject/pods/my-two-container-pod
+curl -X PATCH http://localhost:8001/api/v1/namespaces/myproject/pods/my-two-container-pod -H "Content-type: application/strategic-merge-patch+json" -d '{"spec":{"containers":[{"name": "server","image":"nginx:1.15-alpine"}]}}'
+# oc scale
+oc scale replicaset myfirstreplicaset --replicas=3
+curl -X GET http://localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirstreplicaset/scale
+curl  -X PUT localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirstreplicaset/scale -H "Content-type: application/json" -d '{"kind":"Scale","apiVersion":"autoscaling/v1","metadata":{"name":"myfirstreplicaset","namespace":"myproject"},"spec":{"replicas":5}}'
+curl -X GET http://localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirstreplicaset/status
+# expose service
+kubectl run hello-world –replicas=2 –labels=”run=load-balancer-example” –image=gcr.io/google-samples/node-hello:1.0 –port=8080
+kubectl expose deployment hello-world --type=ClusterIP --name=example-service
+kubectl port-forward service/example-service 8080:8080
+# csidriver and CSINode
+kubectl get csinode microk8s -o yaml
+kubectl get csidriver csi.datenlord.io -o yaml
+# permission
+kubectl auth can-i get configmonitors.magalix.com --as=system:serviceaccount:crd-test:crd-operator-sa -n crd-test
+
+oc get pods my-two-container-pod --export -o json > podmanifest.json # dump to json file
+
+# test etcd in k8s
+kubectl run etcdclient --image=localhost:32000/datenlord/csiplugin:latest localhost:32000/datenlord/csiplugin:latest --restart=Never -n datenlord-csi -- /usr/bin/tail -f /dev/null
+kubectl run etcdclient --image=busybox busybox --restart=Never -n datenlord-csi -- /usr/bin/tail -f /dev/null
+kubectl exec -it etcdclient -n datenlord-csi -- /bin/sh
+wget https://github.com/coreos/etcd/releases/download/v3.1.4/etcd-v3.1.4-linux-amd64.tar.gz && tar -xvf etcd-v3.1.4-linux-amd64.tar.gz && cp etcd-v3.1.4-linux-amd64/etcdctl .
+export ETCDCTL_API=3
+export ETCDCTL_ENDPOINTS=http://datenlord-etcd-cluster-client:2379
+./etcdctl endpoint health
+./etcdctl put operator sdk
+./etcdctl get operator
+exit
+
+kubectl delete pod etcdclient
+
+docker run -it --rm -e RUST_LOG=debug --mount type=bind,source=/dev/fuse,target=/dev/fuse,bind-propagation=shared --mount type=bind,source=/home/pwang/datenlord/fuse_mount_dir,target=/var/opt/datenlord-data,bind-propagation=rshared --privileged datenlord/datenlord /var/opt/datenlord-data
+docker run -it -v /home/ubuntu/fuse_test:/opt/test_fuse ubuntu /bin/bash
+docker run -it -v /home/ubuntu/bind_target:/opt/test_target ubuntu /bin/bash
+docker run -it --rm --privileged -v /lib/modules:/lib/modules:ro -v /usr/src:/usr/src:ro -v /etc/localtime:/etc/localtime:ro -v /sys/kernel/debug:/sys/kernel/debug -v `pwd`:/tmp/rust_cargo datenlord/rust_bcc:ubuntu20.04-bcc0.16.0 /bin/bash
+
+grpcurl -d '{"name": "TEMP_SNAPSHOT", "source_volume_id": "INVALID_VOLUME_ID"}' -plaintext -proto csi.proto -unix /tmp/csi.sock csi.v1.Controller/CreateSnapshot
+grpcurl -d '{"name": "TEMP_SNAPSHOT", "source_volume_id": "INVALID_VOLUME_ID"}' -plaintext -proto csi.proto localhost:50050 csi.v1.Controller/CreateSnapshot
+grpcurl -d '{"secrets": {"KEY": "VALUE"}}' -plaintext -proto csi.proto -unix /tmp/csi.sock csi.v1.Controller/DeleteVolume
+grpcurl -d '{"secrets": {"KEY": "VALUE"}}' -plaintext -proto csi.proto localhost:50050 csi.v1.Controller/DeleteVolume
+
+grpcurl -d '{"name": "TEMP_SNAPSHOT", "source_volume_id": "INVALID_VOLUME_ID"}' -plaintext -proto datenlord_worker.proto localhost:50051 datenlord.v1.Worker/WorkerCreateSnapshot
+grpcurl -d '{"secrets": {"KEY": "VALUE"}}' -plaintext -proto datenlord_worker.proto localhost:50051 datenlord.v1.Worker/WorkerDeleteVolume
+
+
+fusermount: option allow_root, allow_other only allowed if 'user_allow_other' is set in /etc/fuse.conf
+
+# landscape with reduced dpi as 100 to speed up conversion
+./k2pdfopt -x -ui- -dev ko2 -mode fw -n- -ac -m 0 -mc- -om 0 -pad 0 -odpi 100 <path to scanned book>
+# portrait
+./k2pdfopt -x -ui- -dev ko2 -mode 2col -ac -m 0 -mc- -om 0 -pad 0 <path to paper>
+
+env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.8.2
+/Users/pwang/.pyenv/versions/3.8.2/bin/python3  -c 'import tkinter; tkinter._test()'
+/Users/pwang/.pyenv/versions/3.8.2/bin/python3 -m pip install --upgrade pip
+/Users/pwang/.pyenv/versions/3.8.2/bin/python3 -m pipenv install pyinstaller
+/Users/pwang/.pyenv/versions/3.8.2/bin/python3 -m pipenv run <cmd>
+/Users/pwang/.pyenv/versions/3.8.2/bin/python3 -m pipenv shell ;
+# replace wrong _CONFIG_H in pyinstaller using the ENV
+export _CONFIG_H=/Users/pwang/.pyenv/versions/3.8.2/Python.framework/Versions/3.8/include/python3.8/pyconfig.h
+pyinstaller -Fw --add-binary './k2pdfopt:.' --icon=logo.icns --noconsole rebook.py --clean --noconfirm
+
+/usr/local/Cellar/tcl-tk/8.6.10/lib/tk8.6
+/usr/local/Cellar/tcl-tk/8.6.10/lib/tcl8.6
+
+
+One CPU cycle .............................. 0.4 ns
+L1 cache reference ......................... 0.5 ns
+Branch mispredict ............................ 5 ns
+L2 cache reference ........................... 7 ns
+Mutex lock/unlock ........................... 25 ns
+Main memory reference ...................... 100 ns
+Optane persistent memory access ............ 350 ns
+Compress 1K bytes with Zippy ............. 3,000 ns  =   3 µs
+Optane SSD I/O .......................... 10,000 ns  =  10 µs
+Send 2K bytes over 1 Gbps network ....... 20,000 ns  =  20 µs
+NVMe SSD I/O ............................ 25,000 ns  =  25 µs
+SSD random read ........................ 150,000 ns  = 150 µs
+Read 1 MB sequentially from memory ..... 250,000 ns  = 250 µs
+Round trip within same datacenter ...... 500,000 ns  = 0.5 ms
+Read 1 MB sequentially from SSD* ..... 1,000,000 ns  =   1 ms
+Disk seek ........................... 10,000,000 ns  =  10 ms
+Read 1 MB sequentially from disk .... 20,000,000 ns  =  20 ms
+Send packet CA->Netherlands->CA .... 150,000,000 ns  = 150 ms
+
+
+# Add --allow-privileged=true to kubelet config and kube-apiserver config
+echo "--allow-privileged=true" | sudo tee -a /var/snap/microk8s/current/args/kubelet /var/snap/microk8s/current/args/kube-apiserver
+# Restart services:
+sudo systemctl restart snap.microk8s.daemon-kubelet.service
+sudo systemctl restart snap.microk8s.daemon-apiserver.service
+
+
+A separate endpoint for controller operations can be specified with -csi.controllerendpoint.
+Directories are created in /tmp by default. This can be changed via -csi.mountdir and -csi.stagingdir.
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gold-example-storage
+provisioner: exampledriver.example.com
+parameters:
+  disk-type: ssd
+  csi.storage.k8s.io/fstype: ext4
+  csi.storage.k8s.io/provisioner-secret-name: mysecret
+  csi.storage.k8s.io/provisioner-secret-namespace: mynamespace
+
+
+apiVersion: storage.k8s.io/v1
+kind: CSIDriver
+metadata:
+  name: mycsidriver.example.com
+spec:
+  attachRequired: false
+  podInfoOnMount: true
+  volumeLifecycleModes: # added in Kubernetes 1.16, this field is beta
+  - Persistent
+  - Ephemeral
+
+If the podInfoOnMount field is set to true during mount, Kubelet will add the following key/values to the volume_context field in the CSI NodePublishVolumeRequest:
+csi.storage.k8s.io/pod.name: {pod.Name}
+csi.storage.k8s.io/pod.namespace: {pod.Namespace}
+csi.storage.k8s.io/pod.uid: {pod.UID}
+csi.storage.k8s.io/serviceAccount.name: {pod.Spec.ServiceAccountName}
+
+apiVersion: storage.k8s.io/v1
+kind: CSINode
+metadata:
+  name: node1
+spec:
+  drivers:
+  - name: mycsidriver.example.com
+    nodeID: storageNodeID1
+    topologyKeys: ['mycsidriver.example.com/regions', "mycsidriver.example.com/zones"]
+
+To test snapshot Beta version, use the following example yaml files.
+https://github.com/kubernetes-csi/external-snapshotter/tree/release-2.0/examples/kubernetes
+Create a StorageClass:
+kubectl create -f storageclass.yaml
+Create a PVC:
+kubectl create -f pvc.yaml
+Create a VolumeSnapshotClass:
+kubectl create -f snapshotclass.yaml
+Create a VolumeSnapshot:
+kubectl create -f snapshot.yaml
+Create a PVC from a VolumeSnapshot:
+kuberctl create -f restore.yaml
+
+Sample node menifest
+      containers:
+      - name: my-csi-driver
+        ...
+        volumeMounts:
+        - name: socket-dir
+          mountPath: /csi
+        - name: mountpoint-dir
+          mountPath: /var/lib/kubelet/pods
+          mountPropagation: "Bidirectional"
+      - name: node-driver-registrar
+        ...
+        volumeMounts:
+        - name: registration-dir
+          mountPath: /registration
+      volumes:
+      # This volume is where the socket for kubelet->driver communication is done
+      - name: socket-dir
+        hostPath:
+          path: /var/lib/kubelet/plugins/<driver-name>
+          type: DirectoryOrCreate
+      # This volume is where the driver mounts volumes
+      - name: mountpoint-dir
+        hostPath:
+          path: /var/lib/kubelet/pods
+          type: Directory
+      # This volume is where the node-driver-registrar registers the plugin
+      # with kubelet
+      - name: registration-dir
+        hostPath:
+          path: /var/lib/kubelet/plugins_registry
+          type: Directory
+
+
+# k8s e2e.test
+https://dl.k8s.io/v1.18.0/kubernetes-test-linux-amd64.tar.gz
+https://storage.googleapis.com/kubernetes-release/release/v1.18.0/kubernetes-test-linux-amd64.tar.gz
+mv kubernetes/test/ e2e.test
+
+microk8s.kubectl config view --raw > $HOME/.kube/microk8s.cfg
+e2e.test/bin/e2e.test -v=6 -test.v -ginkgo.v -ginkgo.trace -ginkgo.focus='External.Storage' -kubectl-path=/snap/bin/microk8s.kubectl -kubeconfig=$HOME/.kube/microk8s.cfg -storage.testdriver=datenlord-e2e-test.yaml -ginkgo.reportFile=$HOME/test.log
+
+https://dl.k8s.io/v1.19.0/kubernetes-test-linux-amd64.tar.gz
+e2e.test/bin/e2e.test -v=6 -test.v -ginkgo.v -ginkgo.trace -ginkgo.focus='External.Storage' -kubectl-path=/home/pwang/.minikube/cache/linux/v1.19.0/kubectl -kubeconfig=$HOME/.kube/config -storage.testdriver=datenlord-e2e-test.yaml -ginkgo.reportFile=$HOME/test.log
+
+
+# use ginkgo to run some kinds of test in parallel
+~/k8s-v1.19.1/test/bin/ginkgo -noColor -p -v -failFast -failOnPending -debug -focus='External.Storage' -skip='.*Dynamic PV.*filesystem.*should access to two volumes with the same volume mode and retain data across pod recreation on .* node' ~/k8s-v1.19.1/test/bin/e2e.test -- -kubectl-path=`which kubectl` -kubeconfig=$HOME/.kube/config -storage.testdriver=$PWD/datenlord-e2e-test.yaml -test.parallel=1 -v=5 |& tee ~/e2e.test.log
+
+open /etc/kubernetes/manifests/kube-controller-manager.yaml and modify its start-up settings,
+specifically by adding a “-v=5” option to the KCM container
+
+cat >/etc/kubernetes/manifests/kube-controller-manager.yaml <<EOF
+  - command:
+    - kube-controller-manager
+    - --address=127.0.0.1
+    - --authentication-kubeconfig=/etc/kubernetes/controller-manager.conf
+    - --authorization-kubeconfig=/etc/kubernetes/controller-manager.conf
+    - --client-ca-file=/var/lib/minikube/certs/ca.crt
+    - --cluster-signing-cert-file=/var/lib/minikube/certs/ca.crt
+    - --cluster-signing-key-file=/var/lib/minikube/certs/ca.key
+    - --controllers=*,bootstrapsigner,tokencleaner
+    - --kubeconfig=/etc/kubernetes/controller-manager.conf
+    - --leader-elect=true
+    - --requestheader-client-ca-file=/var/lib/minikube/certs/front-proxy-ca.crt
+    - --root-ca-file=/var/lib/minikube/certs/ca.crt
+    - --service-account-private-key-file=/var/lib/minikube/certs/sa.key
+    - --use-service-account-credentials=true
+    # Add verbosity here …
+    - -v=5
+EOF
+
+# Install snapshot CRD
+kubectl apply -f  https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml
+kubectl apply -f  https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml
+kubectl apply -f  https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
+
+
+# Compile kernel for kata-container
+sudo docker run --rm --runtime=kata-qemu -it alpine
+sudo docker run --rm --runtime=kata-runtime -ti busybox sh
+
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+# use the tool “blockdev” to show the readahead value:
+sudo blockdev --getra /dev/sda1
+# or set the size with:
+sudo blockdev --setra 128 /dev/sda1
+
+# TKperf is a python script which implements the full SNIA PTS specification
+sudo apt install tkperf
+sudo tkperf -i fusion ssd PX600-1000 /dev/fioa -nj 4 -iod 16 -rfb -dsc test.dsc
+
+# Install vert-manager
+sudo apt install qemu qemu-kvm libvirt-daemon bridge-utils virt-manager virtinst
+# Run default network
+sudo virsh net-start default
+sudo virsh list --all
+sudo virsh start <VM_NAME>
+sudo virsh shutdown <VM_NAME>
+sudo virsh domuuid <VM_NAME>
+
+# Disable IPv6
+sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
+sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
+sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+
+cat <<EOF >>/etc/sysctl.conf
+# Disable IPv6
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+EOF
+
+# iproute2
+rdma link add
+rdma link delete
+# soft-roce GID
+cat /sys/class/infiniband/rxe_eth0/ports/1/gids/0
+cat /sys/class/infiniband/rxe_eth0/ports/1/gids/1
+# soft-roce device
+sudo rdma link add rxe_eth0 type rxe netdev enp4s0
+sudo rdma link delete rxe_eth0
+# iproute2 5.5.0
+wget http://archive.ubuntu.com/ubuntu/pool/main/i/iproute2/iproute2_5.5.0-1ubuntu1_amd64.deb
+
+# tcpdump
+sudo tcpdump udp and host 192.168.122.190 -w bad.pcap
+sudo tcpdump udp -i any -w dump.pcap
+sudo tcpdump port 9527
+
+
+    a: &T      // immutable binding of immutable reference
+mut a: &T      // mutable binding of immutable reference
+    a: &mut T  // immutable binding of mutable reference
+mut a: &mut T  // mutable binding of mutable reference
+
+# X11 settings
+xauth info # list Xauthority file
+
+  --user=$(id -u $USER):$(id -g $USER) \
+docker run --rm -it \
+  --env="DISPLAY" \
+  --hostname=`hostname` \
+  --volume="/tmp/.X11-unix:/tmp/.X11-unix:ro" \
+  --volume="$HOME/.Xauthority:/root/.Xauthority:ro" \
+  --volume="/etc/group:/etc/group:ro" \
+  --volume="/etc/passwd:/etc/passwd:ro" \
+  --volume="/etc/shadow:/etc/shadow:ro" \
+  --volume="/etc/sudoers.d:/etc/sudoers.d:ro" \
+  --volume=`pwd`:`pwd` \
+  --workdir=`pwd` \
+  datenlord/spinal-cocotb:1.5.0
+
+# Vivado TCL set multi-thread compilation
+set_param general.maxThreads 8 // default 2 threads
+
+phyzli/ubuntu18.04_xfce4_vnc4server_synopsys2016   latest
+# apt install libncurses-dev # for VCS
+
+sudo apt install chkconfig
+sudo chkconfig <SERVICE> off
+systemctl --all
+systemctl status nscd.service
+systemctl list-units | grep nscd
+systemctl list-unit-files | grep nscd
+systemctl list-units --all --type=service
+systemctl list-dependencies multi-user.target --reverse
+systemctl --failed
+systemctl list-unit-files 列出所有可用的Unit
+systemctl list-units 列出所有正在运行的Unit
+systemctl --failed 列出所有失败单元
+systemctl mask httpd.service 禁用服务
+systemctl unmask httpd.service
+systemctl kill httpd 杀死服务
+systemd-analyze critical-chain：分析启动时的关键链
+systemd-analyze blame 分析启动时各个进程花费的时间
+# Find out bottleneck
+systemd-analyze blame # Find out slowest service
+systemd-analyze critical-chain
+systemd-analyze plot > SystemdAnalyzePlot.svg # Dump chart
+systemd-analyze critical-chain docker.service
+systemctl list-dependencies --reverse plymouth-quit-wait.service
+systemctl list-dependencies --reverse NetworkManager-wait-online.service
+# Disable/Mask
+sudo systemctl mask/unmask NetworkManager-wait-online.service
+sudo systemctl enable/disable NetworkManager-wait-online.service
+less ~/.xsession-errors
+# Mask and disable following service
+sudo systemctl mask NetworkManager-wait-online.service
+sudo systemctl mask nmbd.service
+sudo systemctl mask smbd.service
+sudo systemctl mask apt-daily-upgrade.service
+sudo systemctl disable NetworkManager-wait-online.service
+sudo systemctl disable nmbd.service
+sudo systemctl disable smbd.service
+sudo systemctl disable apt-daily-upgrade.service
+sudo journalctl -u docker
+sudo systemctl disable docker.service
+sudo systemctl enable docker.socket
+
+docker run --rm -it \
+    -e DISPLAY \
+    -v /tmp/.X11-unix/:/tmp/.X11-unix/:ro \
+    -v $HOME/.Xauthority:/root/.Xauthority:ro \
+    --hostname `hostname` \
+    -e JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005 \
+    -p 127.0.0.1:5005:5005 \
+    -v `pwd`/cache:/root \
+    -v `pwd`:`pwd` \
+    -w `pwd` \
+    spinal-cocotb:1.6.0
+
+curl -L -o mill https://github.com/lihaoyi/mill/releases/download/0.9.9/0.9.9
+curl -L -O https://github.com/sbt/sbt/releases/download/v1.5.5/sbt-1.5.5.tgz
+
+java -classpath ./out/production/rock-scala:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.13/scala-library-2.12.13.jar playground.ScalaPlayground
+
+java -classpath ./target/scala-2.11/classes:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/com/github/oshi/oshi-core/3.4.0/oshi-core-3.4.0.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/com/github/scopt/scopt_2.11/3.7.1/scopt_2.11-3.7.1.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/com/github/spinalhdl/spinalhdl-core_2.11/1.6.0/spinalhdl-core_2.11-1.6.0.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/com/github/spinalhdl/spinalhdl-idsl-payload_2.11/1.6.0/spinalhdl-idsl-payload_2.11-1.6.0.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/com/github/spinalhdl/spinalhdl-idsl-plugin_2.11/1.6.0/spinalhdl-idsl-plugin_2.11-1.6.0.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/com/github/spinalhdl/spinalhdl-lib_2.11/1.6.0/spinalhdl-lib_2.11-1.6.0.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/com/github/spinalhdl/spinalhdl-sim_2.11/1.6.0/spinalhdl-sim_2.11-1.6.0.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/com/intellij/annotations/12.0/annotations-12.0.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.11/0.2.7/sourcecode_2.11-0.2.7.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/commons-io/commons-io/2.4/commons-io-2.4.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/4.2.2/jna-platform-4.2.2.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/4.2.2/jna-4.2.2.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/net/openhft/affinity/3.1.11/affinity-3.1.11.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.12/scala-compiler-2.11.12.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar:/root/.cache/coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-simple/1.7.25/slf4j-simple-1.7.25.jar mylib.MyTopLevelSim
+
+sbt/bin/sbt -jvm-debug 5005 "runMain mylib.MyTopLevelSim"
+./mill mylib.runMain mylib.MyTopLevelSim
+
+cd /tmp/SpinalTemplateSbt && curl -L -o mill https://github.com/lihaoyi/mill/releases/download/0.9.9/0.9.9 && curl -L -O https://github.com/sbt/sbt/releases/download/v1.5.5/sbt-1.5.5.tgz && chmod +x mill && mv mill /usr/local/bin/ && mill version && tar zxf sbt-1.5.5.tgz && mv sbt/bin/sbt /usr/local/bin/ && sbt -version
+cd /tmp && curl -L -o mill https://github.com/lihaoyi/mill/releases/download/0.9.9/0.9.9 && curl -L -O https://github.com/sbt/sbt/releases/download/v1.5.5/sbt-1.5.5.tgz && chmod +x mill && mv mill /usr/local/bin/ && tar zxf sbt-1.5.5.tgz && mv sbt/bin/sbt /usr/local/bin/
+
+
+# veth pair connects two namespaces
+sudo ip netns add ns1
+sudo ip netns add ns2
+
+sudo ip link add veth-ns1 type veth peer name veth-ns2
+
+sudo ip link set veth-ns1 netns ns1
+sudo ip link set veth-ns2 netns ns2
+
+sudo ip -n ns1 addr add 192.168.1.1/24 dev veth-ns1
+sudo ip -n ns2 addr add 192.168.1.2/24 dev veth-ns2
+
+sudo ip -n ns1 link set veth-ns1 up
+sudo ip -n ns2 link set veth-ns2 up
+
+sudo ip netns exec ns1 ping 192.168.1.2
+sudo ip netns exec ns2 ping 192.168.1.1
+
+sudo ip -all netns delete
+
+
+# veth pair and bridge connect multiple namespaces
+sudo ip netns add ns1
+sudo ip netns add ns2
+sudo ip netns add ns3
+
+#sudo brctl addbr virtual-bridge
+sudo ip link add virtual-bridge type bridge
+
+sudo ip link add veth-ns1 type veth peer name veth-ns1-br
+sudo ip link set veth-ns1 netns ns1
+#sudo brctl addif virtual-bridge veth-ns1-br
+sudo ip link set veth-ns1-br master virtual-bridge
+
+sudo ip link add veth-ns2 type veth peer name veth-ns2-br
+sudo ip link set veth-ns2 netns ns2
+#sudo brctl addif virtual-bridge veth-ns2-br
+sudo ip link set veth-ns2-br master virtual-bridge
+
+sudo ip link add veth-ns3 type veth peer name veth-ns3-br
+sudo ip link set veth-ns3 netns ns3
+#sudo brctl addif virtual-bridge veth-ns3-br
+sudo ip link set veth-ns3-br master virtual-bridge
+
+sudo ip -n ns1 addr add 192.168.1.1/24 dev veth-ns1
+sudo ip -n ns2 addr add 192.168.1.2/24 dev veth-ns2
+sudo ip -n ns3 addr add 192.168.1.3/24 dev veth-ns3
+
+sudo ip link set virtual-bridge up
+sudo ip link set veth-ns1-br up
+sudo ip link set veth-ns2-br up
+sudo ip link set veth-ns3-br up
+sudo ip -n ns1 link set veth-ns1 up
+sudo ip -n ns2 link set veth-ns2 up
+sudo ip -n ns3 link set veth-ns3 up
+
+sudo ip netns exec ns1 ping 192.168.1.2
+
+
+# veth pair connect two namespaces via routing
+sudo ip netns add ns1
+sudo ip netns add ns2
+sudo ip netns add ns-router
+
+sudo ip link add veth-ns1 type veth peer name veth-ns1-router
+sudo ip link set veth-ns1 netns ns1
+sudo ip link set veth-ns1-router netns ns-router
+
+sudo ip link add veth-ns2 type veth peer name veth-ns2-router
+sudo ip link set veth-ns2 netns ns2
+sudo ip link set veth-ns2-router netns ns-router
+
+sudo ip -n ns1 addr add 192.168.1.2/24 dev veth-ns1
+sudo ip -n ns2 addr add 192.168.2.2/24 dev veth-ns2
+sudo ip -n ns-router addr add 192.168.1.1/24 dev veth-ns1-router
+sudo ip -n ns-router addr add 192.168.2.1/24 dev veth-ns2-router
+
+sudo ip -n ns1 link set veth-ns1 up
+sudo ip -n ns2 link set veth-ns2 up
+sudo ip -n ns-router link set veth-ns1-router up
+sudo ip -n ns-router link set veth-ns2-router up
+
+sudo ip netns exec ns1 ip route add 192.168.2.0/24 via 192.168.1.1
+sudo ip netns exec ns2 ip route add 192.168.1.0/24 via 192.168.2.1
+
+sudo ip netns exec ns1 ping 192.168.2.2
+sudo ip netns exec ns1 traceroute 192.168.2.2
+
+
+# veth pair connects two namespaces via bridge to host network
+sudo ip netns add ns1
+sudo ip netns add ns2
+# sudo brctl addbr br0
+sudo ip link add br0 type bridge
+
+sudo ip link add veth-ns1 type veth peer name veth-ns1-br
+sudo ip link set veth-ns1 netns ns1
+# sudo brctl addif br0 veth-ns1-br
+sudo ip link set veth-ns1-br master br0
+
+sudo ip link add veth-ns2 type veth peer name veth-ns2-br
+sudo ip link set veth-ns2 netns ns2
+# sudo brctl addif br0 veth-ns2-br
+sudo ip link set veth-ns2-br master br0
+
+sudo ip -n ns1 addr add local 192.168.1.2/24 dev veth-ns1
+sudo ip -n ns2 addr add local 192.168.1.3/24 dev veth-ns2
+sudo ip addr add local 192.168.1.1/24 dev br0
+
+sudo ip link set br0 up
+sudo ip link set veth-ns1-br up
+sudo ip link set veth-ns2-br up
+sudo ip -n ns1 link set veth-ns1 up
+sudo ip -n ns2 link set veth-ns2 up
+
+sudo ip netns exec ns1 ip route add default via 192.168.1.1
+sudo ip netns exec ns2 ip route add default via 192.168.1.1
+
+sudo ip netns exec ns1 ping 10.0.2.15
+
+# 13M initrd .config ubuntu 4.15.18
+make localmodconfig
+
+Xilinx Flip-Flop type:
+S: Sync Set
+R: Sync Reset
+P: Async Preset
+C: Async Clear
+D: Double Edge
+E: Clock Enable
+L: Loadable
+FD: D-FF
+FJK: JK-FF
+FT: T-FF
+
+
+Universal Constructor is one-stop shop for
+product map into a, b;
+coproduct map out of a, b;
+exponential map with knob a into b.
+
+L: A -> C
+R: C -> A
+C(La, c) =~ A(a, Rc)
+f: c -> c'
+
+C(La, c) -> A(a, Rc)
+f |             | Rf
+  v             v
+C(La, c') -> A(a, Rc')
+
+
+dmidecode # show # of CPU and # of memories
+cat /proc/zoneinfo # how memory split into zones
+cat /proc/pagetypeinfo
+cat /proc/slabinfo
+slabtop
+
+sudo apt install tigervnc-standalone-server
+
+vncserver :3 # Start VNC
+vncserver -list
+vncserver -kill :3
+vncserver -kill :*
+
+# GNOME VNC screen lock solution
+loginctl list-sessions
+loginctl unlock-session <SESSION_ID>
+
+yt-dlp "https://www.youtube.com/playlist?list=PLT1QAv48lhQKpQnhLroOgr-uJUmZ4WvKq" --list-formats
+yt-dlp -f 140+136 https://www.youtube.com/watch?v=mLCoCHxFxY8 --write-thumbnail --merge-output-format mp4
+yt-dlp -f 251+244 https://www.youtube.com/watch?v=Cix_kpgM5IM --write-thumbnail --merge-output-format webm

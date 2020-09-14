@@ -1,0 +1,14 @@
+scala.io.Source.stdin.getLines().map(partialFunction).foreach(println)
+
+val aFunc = new Function1[Int, Int] {
+  override def apply(elem: Int): Int = elem * 2
+}
+
+val aFunc: Int => Int = elem => elem * 2
+
+(a, b) === a -> b
+
+Option(functionMightReturnNull()) orElse Option(backupFunction())
+Try(functionMightThrowExpection()) orElse Try(backupFunction())
+
+Pattern Match on sealed hierachy, must be full case
